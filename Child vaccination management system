@@ -1,0 +1,146 @@
+import datetime
+import random
+
+users = {}
+children_profiles = {}
+vaccination_records = {}
+vaccination_schedule = {
+    "Birth": ["Hepatitis B"],
+    "2 months": ["DTaP", "Hib", "Polio", "PCV", "Rotavirus"],
+    "4 months": ["DTaP", "Hib", "Polio", "PCV", "Rotavirus"],
+    "6 months": ["DTaP", "Hib", "PCV", "Rotavirus", "Influenza"],
+    "12 months": ["Hib", "PCV", "MMR", "Varicella", "Hepatitis A"]
+}
+
+def generate_id():
+    return str(random.randint(100000, 999999))
+
+def get_current_age(birthdate):
+    today = datetime.date.today()
+    age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+    return age
+
+def register_user():
+    print("Register User")
+    username = input("Enter username: ")
+    if username in users:
+        print("Username already exists.")
+        return
+    password = input("Enter password: ")
+    users[username] = password
+    print(f"User {username} registered successfully!")
+
+def authenticate_user():
+    print("Authenticate User")
+    username = input("Enter username: ")
+    password = input("Enter password: ")
+    if users.get(username) == password:
+        print("Authentication successful!")
+        return username
+    else:
+        print("Authentication failed!")
+        return None
+
+def add_child_profile(username):
+    print("Add Child Profile")
+    child_id = generate_id()
+    name = input("Enter child's name: ")
+    dob_str = input("Enter child's date of birth (YYYY-MM-DD): ")
+    dob = datetime.datetime.strptime(dob_str, "%Y-%m-%d").date()
+    gender = input("Enter child's gender: ")
+    children_profiles[child_id] = {
+        "name": name,
+        "dob": dob,
+        "gender": gender,
+        "parent": username
+    }
+    vaccination_records[child_id] = []
+    print(f"Child profile for {name} added successfully!")
+
+def generate_vaccination_schedule(child_id):
+    age_months = get_current_age(children_profiles[child_id]['dob']) * 12
+    due_vaccines = []
+    if age_months < 1:
+        due_vaccines = vaccination_schedule["Birth"]
+    elif age_months < 3:
+        due_vaccines = vaccination_schedule["2 months"]
+    elif age_months < 5:
+        due_vaccines = vaccination_schedule["4 months"]
+    elif age_months < 7:
+        due_vaccines = vaccination_schedule["6 months"]
+    elif age_months < 13:
+        due_vaccines = vaccination_schedule["12 months"]
+    return due_vaccines
+
+def book_vaccination_appointment(child_id):
+    print("Book Vaccination Appointment")
+    vaccines_due = generate_vaccination_schedule(child_id)
+    if not vaccines_due:
+        print("No vaccinations due at this time.")
+        return
+    print(f"Vaccines due for {children_profiles[child_id]['name']}: {', '.join(vaccines_due)}")
+    appointment_date_str = input("Enter appointment date (YYYY-MM-DD): ")
+    appointment_date = datetime.datetime.strptime(appointment_date_str, "%Y-%m-%d").date()
+    vaccination_records[child_id].append({
+        "vaccines": vaccines_due,
+        "appointment_date": appointment_date,
+        "status": "Scheduled"
+    })
+    print(f"Appointment booked for {children_profiles[child_id]['name']} on {appointment_date}")
+
+def view_vaccination_records(child_id):
+    print(f"Vaccination Records for {children_profiles[child_id]['name']}")
+    for record in vaccination_records[child_id]:
+        print(f"Date: {record['appointment_date']}, Vaccines: {', '.join(record['vaccines'])}, Status: {record['status']}")
+
+def main_menu():
+    while True:
+        print("\nChild Vaccination Management System")
+        print("1. Register User")
+        print("2. Authenticate User")
+        print("3. Exit")
+        choice = input("Enter your choice: ")
+        if choice == "1":
+            register_user()
+        elif choice == "2":
+            username = authenticate_user()
+            if username:
+                user_menu(username)
+        elif choice == "3":
+            print("Exiting the system.")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+def user_menu(username):
+    while True:
+        print(f"\nWelcome, {username}")
+        print("1. Add Child Profile")
+        print("2. Book Vaccination Appointment")
+        print("3. View Vaccination Records")
+        print("4. Logout")
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            add_child_profile(username)
+        elif choice == "2":
+            child_id = input("Enter child's ID: ")
+            if child_id in children_profiles and children_profiles[child_id]['parent'] == username:
+                book_vaccination_appointment(child_id)
+            else:
+                print("Invalid child ID or you do not have permission to access this profile.")
+        elif choice == "3":
+            child_id = input("Enter child's ID: ")
+            if child_id in children_profiles and children_profiles[child_id]['parent'] == username:
+                view_vaccination_records(child_id)
+            else:
+                print("Invalid child ID or you do not have permission to access this profile.")
+        elif choice == "4":
+            print(f"User {username} logged out.")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+# Run the application
+if __name__ == "__main__":
+    main_menu()
