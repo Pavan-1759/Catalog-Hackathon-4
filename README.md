@@ -1,1 +1,2 @@
 # Catalog-Hackathon-4
+The Child Vaccination Management System is a console-based application designed to help parents and healthcare providers manage and schedule vaccinations for young children. This system is particularly crucial in developing countries, where ensuring proper healthcare and timely immunization is a significant challenge. The application provides a smarter way to manage vaccination schedules, store immunization records, and deliver timely information to parents, all through a user-friendly console interface.
